@@ -24,7 +24,22 @@ public class FunctionCreator : MonoBehaviour
     private float circleRadius = 0f;
 
     [SerializeField]
-    private float perlonNoiseAmplifier = 0f;
+    private float noiseAmplifier = 0f;
+
+    [SerializeField]
+    private float noiseSeed = 0f;
+
+    [SerializeField]
+    [Range(0, 50)]
+    private float noiseOffset = 0f;
+
+    [SerializeField]
+    [Range(0, 2)]
+    private float noiseAmplitude = 0f;
+
+    [SerializeField]
+    [Range(0, 1)]
+    private float noiseRoughness = 0f;
 
     private float totalDrawAreaXLength = 0f;
     private float increaseValueOnX = 0f;
@@ -66,56 +81,64 @@ public class FunctionCreator : MonoBehaviour
     private void ValidateInput()
     {
         if (lineRendererDivisionNum <= 0) lineRendererDivisionNum = 0;
-        if (drawFromXPos >= 0) drawFromXPos = 0;
-        if (drawUntilXPos <= 0) drawUntilXPos = 0;
         if (circleRadius <= 0) circleRadius = 0;
+        circleRadius = Mathf.Round(circleRadius);
+        drawFromXPos = -circleRadius;
+        drawUntilXPos = circleRadius;
     }
 
     private void CreateFunctionRepresentation()
     {
         functionView.material = new Material(Shader.Find("Sprites/Default"));
-        functionView.widthMultiplier = 0.2f;
+        functionView.widthMultiplier = 0.01f * circleRadius;
         functionView.positionCount = lineRendererDivisionNum;
         functionView.startColor = Color.white;
         functionView.endColor = Color.white;
 
-        float x = drawFromXPos;
+        float xPos = drawFromXPos;
         for (int i = 0; i < lineRendererDivisionNum; i++)
         {
-            float perlonNoiseValue = perlonNoiseAmplifier * Mathf.PerlinNoise(0f, -Function(x));
+            if (i + 1 >= lineRendererDivisionNum)
+            {
+                functionView.SetPosition(i, new Vector3(drawUntilXPos, 0f, 0f));
+            }
 
-            functionView.SetPosition(i, new Vector3(x + perlonNoiseValue, Function(x) + perlonNoiseValue, 0.0f));
-            if (x > drawUntilXPos + 0.5f)
+            functionView.SetPosition(i, GetPointPosWithNoise(xPos));
+            if (xPos > drawUntilXPos + 0.5f)
             {
                 break;
             }
-            x = x + increaseValueOnX;
+            xPos = xPos + increaseValueOnX;
         }
-
-        //x = drawUntilXPos;
-        //for (int i = lineRendererDivisionNum / 2; i < lineRendererDivisionNum; i++)
-        //{
-        //    functionView.SetPosition(i, new Vector3(x, -Function(x), 0.0f));
-        //    if (x < drawFromXPos - 0.5f)
-        //    {
-        //        break;
-        //    }
-        //    x = x - increaseValueOnX;
-        //}
-
-        //Mesh mesh = new Mesh();
-        //functionView.BakeMesh(mesh, localCamera, true);
-        //functionViewMesh.sharedMesh = mesh;
     }
 
-    public void OnFunctionViewerSettingsUpdated()
+    private Vector3 GetPointPosWithNoise(float xPos)
     {
-        CreateFunctionRepresentation();
+        float noiseValue = GetNoiseValue(xPos);
+        Vector3 pointPosWithoutNoise = new Vector3(xPos, Function(xPos), 0f);
+        return pointPosWithoutNoise * (noiseOffset + noiseValue);
+    }
+
+    private float GetNoiseValue(float xPos)
+    {
+        return GetNoiseAmplitude(xPos) * Mathf.Sin(xPos * noiseRoughness);
+        //return Mathf.PerlinNoise(noiseSeed, Function(xPos * perlinNoiseRoughness));
+    }
+
+    private float GetNoiseAmplitude(float xPos)
+    {
+        return noiseAmplitude * Mathf.PerlinNoise(noiseSeed, Function(xPos * noiseRoughness));
+        //return UnityEngine.Random.Range(0f, 1f);
+        //return noiseAmplitude;
     }
 
     private float Function(float x)
     {
-        return Mathf.Sqrt(Mathf.Abs(circleRadius * circleRadius - x * x));
+        if ((circleRadius * circleRadius - x * x) < 0)
+        {
+            return 0f;
+        }
+        return Mathf.Sqrt(circleRadius * circleRadius - x * x);
     }
 
     private void CreateCoordineSystem()
