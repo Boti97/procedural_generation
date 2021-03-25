@@ -27,6 +27,7 @@ public class FunctionCreator : MonoBehaviour
     private float noiseAmplifier = 0f;
 
     [SerializeField]
+    [Range(0, 25)]
     private float noiseSeed = 0f;
 
     [SerializeField]
@@ -78,15 +79,6 @@ public class FunctionCreator : MonoBehaviour
         CreateFunctionRepresentation();
     }
 
-    private void ValidateInput()
-    {
-        if (lineRendererDivisionNum <= 0) lineRendererDivisionNum = 0;
-        if (circleRadius <= 0) circleRadius = 0;
-        circleRadius = Mathf.Round(circleRadius);
-        drawFromXPos = -circleRadius;
-        drawUntilXPos = circleRadius;
-    }
-
     private void CreateFunctionRepresentation()
     {
         functionView.material = new Material(Shader.Find("Sprites/Default"));
@@ -114,31 +106,36 @@ public class FunctionCreator : MonoBehaviour
 
     private Vector3 GetPointPosWithNoise(float xPos)
     {
-        float noiseValue = GetNoiseValue(xPos);
-        Vector3 pointPosWithoutNoise = new Vector3(xPos, Function(xPos), 0f);
-        return pointPosWithoutNoise * (noiseOffset + noiseValue);
+        return new Vector3(xPos, BaseFunction(xPos), 0f) * (noiseOffset + GenerateNoise(xPos));
     }
 
-    private float GetNoiseValue(float xPos)
+    private float GenerateNoise(float xPos)
     {
-        return GetNoiseAmplitude(xPos) * Mathf.Sin(xPos * noiseRoughness);
-        //return Mathf.PerlinNoise(noiseSeed, Function(xPos * perlinNoiseRoughness));
+        return noiseAmplitude * GenerateFirstLayerNoise(xPos) * GenerateSecondLayerNoise(xPos);
     }
 
-    private float GetNoiseAmplitude(float xPos)
+    private float GenerateFirstLayerNoise(float xPos)
     {
-        return noiseAmplitude * Mathf.PerlinNoise(noiseSeed, Function(xPos * noiseRoughness));
-        //return UnityEngine.Random.Range(0f, 1f);
-        //return noiseAmplitude;
+        return Mathf.Sin(xPos * noiseRoughness);
     }
 
-    private float Function(float x)
+    private float GenerateSecondLayerNoise(float xPos)
     {
-        if ((circleRadius * circleRadius - x * x) < 0)
-        {
-            return 0f;
-        }
-        return Mathf.Sqrt(circleRadius * circleRadius - x * x);
+        return Mathf.PerlinNoise(noiseSeed, BaseFunction(xPos * noiseRoughness));
+    }
+
+    private float BaseFunction(float x)
+    {
+        return (circleRadius * circleRadius - x * x) < 0 ? 0f : Mathf.Sqrt(circleRadius * circleRadius - x * x);
+    }
+
+    private void ValidateInput()
+    {
+        if (lineRendererDivisionNum <= 0) lineRendererDivisionNum = 0;
+        if (circleRadius <= 0) circleRadius = 0;
+        circleRadius = Mathf.Round(circleRadius);
+        drawFromXPos = -circleRadius;
+        drawUntilXPos = circleRadius;
     }
 
     private void CreateCoordineSystem()
