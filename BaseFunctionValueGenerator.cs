@@ -2,38 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseFunctionValueGenerator : MonoBehaviour
+public static class BaseFunctionValueGenerator
 {
-    [SerializeField]
-    [Range(10, 500)]
-    private int circleRadius = 0;
-
-    private FunctionViewCreator functionViewCreator;
-
-    public int CircleRadius { get => circleRadius; set => circleRadius = value; }
-
-    public Vector3 BaseValueWithoutNoise(float xPos)
+    public static Vector3 GetBasePosition(float xPos, float circleRadius)
     {
-        return new Vector3(xPos, BaseFunction(xPos), 0f);
+        return new Vector3(xPos, BaseFunction(xPos, circleRadius), 0f);
     }
 
-    public Vector3 NegativeBaseValueWithoutNoise(float xPos)
+    public static Vector3 GetNegativeBasePosition(float xPos, float circleRadius)
     {
-        return new Vector3(xPos, -BaseFunction(xPos), 0f);
+        return new Vector3(xPos, -BaseFunction(xPos, circleRadius), 0f);
     }
 
-    private void OnValidate()
+    public static float BaseFunction(float x, float circleRadius)
     {
-        if (CircleRadius <= 0) CircleRadius = 0;
-        if (functionViewCreator == null)
-        {
-            functionViewCreator = GetComponent<FunctionViewCreator>();
-        }
-        functionViewCreator.OnValidate();
-    }
-
-    public float BaseFunction(float x)
-    {
-        return (CircleRadius * CircleRadius - x * x) < 0 ? 0f : Mathf.Sqrt(CircleRadius * CircleRadius - x * x);
+        return (circleRadius * circleRadius - x * x) < 0 ? 0f : Mathf.Sqrt(circleRadius * circleRadius - x * x);
     }
 }

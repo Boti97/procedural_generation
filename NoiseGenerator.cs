@@ -2,52 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoiseGenerator : MonoBehaviour
+public static class NoiseGenerator
 {
-    [SerializeField]
-    [Range(0, 5)]
-    private float noiseSeed = 0f;
-
-    [SerializeField]
-    [Range(1, 50)]
-    private float noiseOffset = 0f;
-
-    [SerializeField]
-    [Range(0, 2)]
-    private float noiseAmplitude = 0f;
-
-    [SerializeField]
-    [Range(0, 0.2f)]
-    private float noiseRoughness = 0f;
-
-    private BaseFunctionValueGenerator baseValueGenerator;
-    private FunctionViewCreator functionViewCreator;
-
-    private void OnValidate()
+    public static float GenerateNoise(float xPos, float noiseOffset, float noiseAmplitude, float noiseRoughness, float noiseSeed, float circleRadius)
     {
-        if (baseValueGenerator == null)
-        {
-            baseValueGenerator = gameObject.GetComponent<BaseFunctionValueGenerator>();
-        }
-        if (functionViewCreator == null)
-        {
-            functionViewCreator = GetComponent<FunctionViewCreator>();
-        }
-        functionViewCreator.OnValidate();
+        return noiseOffset + (noiseAmplitude * GenerateFirstLayerNoise(xPos, noiseRoughness) * GenerateSecondLayerNoise(xPos, noiseSeed, noiseRoughness, circleRadius));
     }
 
-    public float GenerateNoise(float xPos)
-    {
-        return noiseOffset + (noiseAmplitude * GenerateFirstLayerNoise(xPos) * GenerateSecondLayerNoise(xPos));
-    }
-
-    private float GenerateFirstLayerNoise(float xPos)
+    private static float GenerateFirstLayerNoise(float xPos, float noiseRoughness)
     {
         return Mathf.Sin(xPos * noiseRoughness);
     }
 
-    private float GenerateSecondLayerNoise(float xPos)
+    private static float GenerateSecondLayerNoise(float xPos, float noiseSeed, float noiseRoughness, float circleRadius)
     {
-        return Mathf.PerlinNoise(noiseSeed, baseValueGenerator.BaseFunction(xPos * noiseRoughness));
+        return Mathf.PerlinNoise(noiseSeed, BaseFunctionValueGenerator.BaseFunction(xPos * noiseRoughness, circleRadius));
     }
 }

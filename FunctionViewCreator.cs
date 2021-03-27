@@ -16,8 +16,24 @@ public class FunctionViewCreator : MonoBehaviour
     private int lineRendererDivisionNum = 0;
 
     [SerializeField]
-    [Range(0, 10)]
-    private float lineWidth;
+    private int circleRadius;
+
+    //noise variables
+    [SerializeField]
+    [Range(0, 5)]
+    private float noiseSeed = 0f;
+
+    [SerializeField]
+    [Range(1, 50)]
+    private float noiseOffset = 0f;
+
+    [SerializeField]
+    [Range(0, 2)]
+    private float noiseAmplitude = 0f;
+
+    [SerializeField]
+    [Range(0, 0.2f)]
+    private float noiseRoughness = 0f;
 
     private float totalDrawAreaXLength = 0f;
     private float increaseValueOnX = 0f;
@@ -28,8 +44,6 @@ public class FunctionViewCreator : MonoBehaviour
     private LineRenderer yAxis;
     private LineRenderer functionView;
     private MeshCollider functionViewMesh;
-
-    private PositionGenerator positionGenerator;
 
     public void OnValidate()
     {
@@ -44,13 +58,8 @@ public class FunctionViewCreator : MonoBehaviour
 
     private void SetupFieldValues()
     {
-        if (positionGenerator == null)
-        {
-            positionGenerator = gameObject.GetComponent<PositionGenerator>();
-        }
-
-        drawFromXPos = positionGenerator.GetDrawFromXPos();
-        drawUntilXPos = positionGenerator.GetDrawUntilXPos();
+        drawFromXPos = -circleRadius;
+        drawUntilXPos = circleRadius;
 
         totalDrawAreaXLength = Mathf.Abs(drawFromXPos) + Mathf.Abs(drawUntilXPos);
         increaseValueOnX = totalDrawAreaXLength / ((lineRendererDivisionNum / 2) - 1);
@@ -78,13 +87,37 @@ public class FunctionViewCreator : MonoBehaviour
         int i;
         for (i = 0; i < lineRendererDivisionNum / 2; i++)
         {
-            functionView.SetPosition(i, positionGenerator.GetPositionWithNoise(xPos));
+            functionView.SetPosition(i,
+                BaseFunctionValueGenerator.GetBasePosition(
+                    xPos,
+                    circleRadius
+                    ) *
+                NoiseGenerator.GenerateNoise(
+                    xPos,
+                    noiseOffset,
+                    noiseAmplitude,
+                    noiseRoughness,
+                    noiseSeed,
+                    circleRadius
+                    ));
             xPos = xPos + increaseValueOnX;
         }
 
         for (; i < lineRendererDivisionNum; i++)
         {
-            functionView.SetPosition(i, positionGenerator.GetNegativePositionWithNoise(xPos));
+            functionView.SetPosition(i,
+                BaseFunctionValueGenerator.GetNegativeBasePosition(
+                    xPos,
+                    circleRadius
+                    ) *
+                NoiseGenerator.GenerateNoise(
+                    xPos,
+                    noiseOffset,
+                    noiseAmplitude,
+                    noiseRoughness,
+                    noiseSeed,
+                    circleRadius
+                    ));
             xPos = xPos - increaseValueOnX;
         }
 
@@ -102,7 +135,7 @@ public class FunctionViewCreator : MonoBehaviour
     private void CreateFunctionLineRenderer()
     {
         functionView.material = new Material(Shader.Find("Sprites/Default"));
-        functionView.widthMultiplier = lineWidth;
+        functionView.widthMultiplier = 0.01f * circleRadius * noiseOffset;
         functionView.positionCount = lineRendererDivisionNum;
         functionView.startColor = Color.cyan;
         functionView.endColor = Color.cyan;
@@ -111,7 +144,7 @@ public class FunctionViewCreator : MonoBehaviour
     private void CreateCoordineSystem()
     {
         xAxis.material = new Material(Shader.Find("Sprites/Default"));
-        xAxis.widthMultiplier = lineWidth;
+        xAxis.widthMultiplier = 0.02f * circleRadius * noiseOffset;
         xAxis.positionCount = 2;
         xAxis.SetPosition(0, new Vector3(-1000, 0, 0));
         xAxis.SetPosition(1, new Vector3(1000, 0, 0));
@@ -119,7 +152,7 @@ public class FunctionViewCreator : MonoBehaviour
         xAxis.endColor = Color.red;
 
         yAxis.material = new Material(Shader.Find("Sprites/Default"));
-        yAxis.widthMultiplier = lineWidth;
+        yAxis.widthMultiplier = 0.02f * circleRadius * noiseOffset;
         yAxis.positionCount = 2;
         yAxis.SetPosition(0, new Vector3(0, -1000, 0));
         yAxis.SetPosition(1, new Vector3(0, 1000, 0));
