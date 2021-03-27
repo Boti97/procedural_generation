@@ -61,20 +61,14 @@ public class IntersectionCircleCreator : MonoBehaviour
         int i;
         for (i = 0; i < lineRendererDivisionNum / 2; i++)
         {
-            functionView.SetPosition(i, BaseFunctionValueGenerator.GetBasePosition(
-                    xPos,
-                    circleRadius
-                    ));
-            xPos = xPos + increaseValueOnX;
+            functionView.SetPosition(i, BaseFunctionValueGenerator.GetBasePosition(xPos, circleRadius));
+            xPos += increaseValueOnX;
         }
 
         for (; i < lineRendererDivisionNum; i++)
         {
-            functionView.SetPosition(i, BaseFunctionValueGenerator.GetNegativeBasePosition(
-                    xPos,
-                    circleRadius
-                    ));
-            xPos = xPos - increaseValueOnX;
+            functionView.SetPosition(i, BaseFunctionValueGenerator.GetNegativeBasePosition(xPos, circleRadius));
+            xPos -= increaseValueOnX;
         }
 
         Mesh mesh = new Mesh();

@@ -36,9 +36,12 @@ public class FunctionViewCreator : MonoBehaviour
     private float noiseRoughness = 0f;
 
     private float totalDrawAreaXLength = 0f;
-    private float increaseValueOnX = 0f;
+    private float increaseValueOnXUp = 0f;
+    private float increaseValueOnXDown = 0f;
     private float drawFromXPos = 0f;
     private float drawUntilXPos = 0f;
+    int numberOfVerticesUp;
+    int numberOfVerticesDown;
 
     private LineRenderer xAxis;
     private LineRenderer yAxis;
@@ -62,7 +65,12 @@ public class FunctionViewCreator : MonoBehaviour
         drawUntilXPos = circleRadius;
 
         totalDrawAreaXLength = Mathf.Abs(drawFromXPos) + Mathf.Abs(drawUntilXPos);
-        increaseValueOnX = totalDrawAreaXLength / ((lineRendererDivisionNum / 2) - 1);
+
+        numberOfVerticesUp = Mathf.RoundToInt(lineRendererDivisionNum / 2);
+        numberOfVerticesDown = lineRendererDivisionNum - numberOfVerticesUp;
+
+        increaseValueOnXUp = totalDrawAreaXLength / (numberOfVerticesUp);
+        increaseValueOnXDown = totalDrawAreaXLength / (numberOfVerticesDown-1);
 
         if (xAxis == null)
         {
@@ -85,40 +93,20 @@ public class FunctionViewCreator : MonoBehaviour
 
         float xPos = drawFromXPos;
         int i;
-        for (i = 0; i < lineRendererDivisionNum / 2; i++)
+        for (i = 0; i < numberOfVerticesUp; i++)
         {
             functionView.SetPosition(i,
-                BaseFunctionValueGenerator.GetBasePosition(
-                    xPos,
-                    circleRadius
-                    ) *
-                NoiseGenerator.GenerateNoise(
-                    xPos,
-                    noiseOffset,
-                    noiseAmplitude,
-                    noiseRoughness,
-                    noiseSeed,
-                    circleRadius
-                    ));
-            xPos = xPos + increaseValueOnX;
+                BaseFunctionValueGenerator.GetBasePosition(xPos, circleRadius) *
+                NoiseGenerator.GenerateNoise(xPos, noiseOffset, noiseAmplitude, noiseRoughness, noiseSeed, circleRadius));
+            xPos += increaseValueOnXUp;
         }
 
         for (; i < lineRendererDivisionNum; i++)
         {
             functionView.SetPosition(i,
-                BaseFunctionValueGenerator.GetNegativeBasePosition(
-                    xPos,
-                    circleRadius
-                    ) *
-                NoiseGenerator.GenerateNoise(
-                    xPos,
-                    noiseOffset,
-                    noiseAmplitude,
-                    noiseRoughness,
-                    noiseSeed,
-                    circleRadius
-                    ));
-            xPos = xPos - increaseValueOnX;
+                BaseFunctionValueGenerator.GetNegativeBasePosition(xPos, circleRadius) *
+                NoiseGenerator.GenerateNoise(xPos, noiseOffset, noiseAmplitude, noiseRoughness, noiseSeed, circleRadius));
+            xPos -= increaseValueOnXDown;
         }
 
         Mesh mesh = new Mesh();
