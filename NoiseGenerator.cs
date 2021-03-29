@@ -4,9 +4,9 @@ using UnityEngine;
 
 public static class NoiseGenerator
 {
-    public static float GenerateNoise(float xPos, float noiseOffset, float noiseAmplitude, float noiseRoughness, float noiseSeed, float circleRadius)
+    public static float GenerateNoise(float xPos, float noiseAmplitude, float noiseRoughness, float noiseSeed, float circleRadius)
     {
-        return noiseOffset + (noiseAmplitude * GenerateFirstLayerNoise(xPos, noiseRoughness) * GenerateSecondLayerNoise(xPos, noiseSeed, noiseRoughness, circleRadius));
+        return 1 + (noiseAmplitude * GenerateFirstLayerNoise(xPos, noiseRoughness) * GenerateSecondLayerNoise(xPos, noiseSeed, noiseRoughness, circleRadius));
     }
 
     private static float GenerateFirstLayerNoise(float xPos, float noiseRoughness)
