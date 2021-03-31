@@ -49,10 +49,8 @@ public sealed class PlanetPoolManager : MonoBehaviour
         InstantiatePlanets();
     }
 
-    public IEnumerator MovePlanetToPos(Vector3 newPosition)
+    public void MovePlanetToPos(Vector3 newPosition)
     {
-        yield return new WaitForSeconds(0f);
-
         GameObject planet = GetPlanetFromPool();
         planet.SetActive(true);
         planet.transform.position = newPosition;

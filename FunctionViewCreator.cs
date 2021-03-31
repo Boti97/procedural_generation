@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Assets.Scripts;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static BaseFunctionValueGenerator;
 
 public class FunctionViewCreator : MonoBehaviour
 {
@@ -32,23 +34,12 @@ public class FunctionViewCreator : MonoBehaviour
     [Range(0, 0.2f)]
     private float noiseRoughness = 0f;
 
-    private float totalDrawAreaXLength = 0f;
-    private float increaseValueOnXUp = 0f;
-    private float increaseValueOnXDown = 0f;
-    private float drawFromXPos = 0f;
-    private float drawUntilXPos = 0f;
-    private int numberOfVerticesUp;
-    private int numberOfVerticesDown;
-
     private LineRenderer xAxis;
     private GameObject xAxisObject;
     private LineRenderer yAxis;
     private GameObject yAxisObject;
     private LineRenderer functionView;
     private GameObject functionViewObject;
-    private MeshCollider functionViewMesh;
-    private MeshCollider xAxisMesh;
-    private MeshCollider yAxisMesh;
 
     public LineRenderer FunctionView { get => functionView; set => functionView = value; }
     public int LineRendererDivisionNum { get => lineRendererDivisionNum; set => lineRendererDivisionNum = value; }
@@ -63,29 +54,17 @@ public class FunctionViewCreator : MonoBehaviour
 
         CreateFunctionRepresentation();
 
-        StartCoroutine(gameObject.GetComponent<PlanetCreator>().CreatePlanets());
+        gameObject.GetComponent<PlanetCreator>().CreatePlanets();
     }
 
     private void SetupFieldValues()
     {
-        drawFromXPos = -baseCircleRadius;
-        drawUntilXPos = baseCircleRadius;
-
-        totalDrawAreaXLength = Mathf.Abs(drawFromXPos) + Mathf.Abs(drawUntilXPos);
-
-        numberOfVerticesUp = Mathf.RoundToInt(LineRendererDivisionNum / 2);
-        numberOfVerticesDown = LineRendererDivisionNum - numberOfVerticesUp;
-
-        increaseValueOnXUp = totalDrawAreaXLength / (numberOfVerticesUp);
-        increaseValueOnXDown = totalDrawAreaXLength / (numberOfVerticesDown - 1);
-
         xAxisObject = GameObject.FindGameObjectWithTag("XAxis");
         if (xAxis == null)
         {
             xAxisObject = Instantiate(LinePrefab);
             xAxisObject.tag = "YAxis";
             xAxis = xAxisObject.AddComponent<LineRenderer>();
-            xAxisMesh = xAxisObject.AddComponent<MeshCollider>();
         }
         yAxisObject = GameObject.FindGameObjectWithTag("YAxis");
         if (yAxis == null)
@@ -93,7 +72,6 @@ public class FunctionViewCreator : MonoBehaviour
             yAxisObject = Instantiate(LinePrefab);
             yAxisObject.tag = "YAxis";
             yAxis = yAxisObject.AddComponent<LineRenderer>();
-            yAxisMesh = yAxisObject.AddComponent<MeshCollider>();
         }
         functionViewObject = GameObject.FindGameObjectWithTag("FunctionView");
         if (functionViewObject == null)
@@ -101,7 +79,6 @@ public class FunctionViewCreator : MonoBehaviour
             functionViewObject = Instantiate(LinePrefab);
             functionViewObject.tag = "FunctionView";
             FunctionView = functionViewObject.AddComponent<LineRenderer>();
-            functionViewMesh = functionViewObject.AddComponent<MeshCollider>();
         }
     }
 
@@ -109,27 +86,13 @@ public class FunctionViewCreator : MonoBehaviour
     {
         CreateFunctionLineRenderer();
 
-        float xPos = drawFromXPos;
-        int i;
-        for (i = 0; i < numberOfVerticesUp; i++)
+        float angle = 360f / (LineRendererDivisionNum - 1);
+        for (int i = 0; i < LineRendererDivisionNum; i++)
         {
-            FunctionView.SetPosition(i,
-                BaseFunctionValueGenerator.GetBasePosition(xPos, baseCircleRadius) *
-                NoiseGenerator.GenerateNoise(xPos, noiseAmplitude, noiseRoughness, noiseSeed, baseCircleRadius));
-            xPos += increaseValueOnXUp;
+            FloatPoint point = BaseFunction(baseCircleRadius, angle * i);
+            float noise = NoiseGenerator.GenerateNoise(point.X, point.Y, noiseAmplitude, noiseRoughness, noiseSeed);
+            FunctionView.SetPosition(i, new Vector3(point.X, point.Y, 0f) * noise);
         }
-
-        for (; i < LineRendererDivisionNum; i++)
-        {
-            FunctionView.SetPosition(i,
-                BaseFunctionValueGenerator.GetNegativeBasePosition(xPos, baseCircleRadius) *
-                NoiseGenerator.GenerateNoise(xPos, noiseAmplitude, noiseRoughness, noiseSeed, baseCircleRadius));
-            xPos -= increaseValueOnXDown;
-        }
-
-        Mesh mesh = new Mesh();
-        FunctionView.BakeMesh(mesh, localCamera, true);
-        functionViewMesh.sharedMesh = mesh;
     }
 
     private void ValidateInput()
@@ -157,10 +120,6 @@ public class FunctionViewCreator : MonoBehaviour
         xAxis.startColor = Color.red;
         xAxis.endColor = Color.red;
 
-        Mesh meshX = new Mesh();
-        xAxis.BakeMesh(meshX, localCamera, true);
-        xAxisMesh.sharedMesh = meshX;
-
         yAxis.material = new Material(Shader.Find("Sprites/Default"));
         yAxis.widthMultiplier = 0.01f * baseCircleRadius;
         yAxis.positionCount = 2;
@@ -168,9 +127,5 @@ public class FunctionViewCreator : MonoBehaviour
         yAxis.SetPosition(1, new Vector3(0, 1000, 0));
         yAxis.startColor = Color.green;
         yAxis.endColor = Color.green;
-
-        Mesh meshY = new Mesh();
-        yAxis.BakeMesh(meshY, localCamera, true);
-        yAxisMesh.sharedMesh = meshY;
     }
 }

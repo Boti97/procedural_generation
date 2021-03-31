@@ -1,21 +1,18 @@
-﻿using System.Collections;
+﻿using Assets.Scripts;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public static class BaseFunctionValueGenerator
 {
-    public static Vector3 GetBasePosition(float xPos, float circleRadius)
+    public static FloatPoint BaseFunction(float radius, float angle)
     {
-        return new Vector3(xPos, BaseFunction(xPos, circleRadius), 0f);
+        return new FloatPoint(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle * Mathf.Deg2Rad)); ;
     }
 
-    public static Vector3 GetNegativeBasePosition(float xPos, float circleRadius)
+    public static float GetAngleByRadiusAndDensity(float radius, float density)
     {
-        return new Vector3(xPos, -BaseFunction(xPos, circleRadius), 0f);
-    }
-
-    public static float BaseFunction(float x, float circleRadius)
-    {
-        return (circleRadius * circleRadius - x * x) < 0 ? 0f : Mathf.Sqrt(circleRadius * circleRadius - x * x);
+        return Mathf.Asin(density / radius) * (180 / Mathf.PI);
     }
 }

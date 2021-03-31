@@ -14,7 +14,7 @@ public class PlanetCreator : MonoBehaviour
     private LineRenderer functionView;
     private Vector3 currentPos;
 
-    public IEnumerator CreatePlanets()
+    public void CreatePlanets()
     {
         PlanetPoolManager.Instance.ResetPlanets();
 
@@ -26,7 +26,7 @@ public class PlanetCreator : MonoBehaviour
         Vector3 lastPosition = Vector3.positiveInfinity;
         int indexOfClosestPoint = 0;
 
-        yield return StartCoroutine(PlanetPoolManager.Instance.MovePlanetToPos(currentPos));
+        PlanetPoolManager.Instance.MovePlanetToPos(currentPos);
         for (int l = 0; l < numberOfPointsInFunction; l++)
         {
             Vector3 closestPoint = Vector3.positiveInfinity;
@@ -36,9 +36,10 @@ public class PlanetCreator : MonoBehaviour
             {
                 Vector3 nextPoint = functionView.GetPosition(i);
                 float distance = GetDistance(objectDensity, currentPos, nextPoint);
+                if (distance > objectDensity * 3) break;
                 if (distance < closestDistance)
                 {
-                    if (IsNewPoint(nextPoint) && indexOfClosestPoint < i)
+                    if (IsNewPoint(nextPoint))
                     {
                         closestDistance = distance;
                         closestPoint = nextPoint;
@@ -49,7 +50,7 @@ public class PlanetCreator : MonoBehaviour
 
             if (!closestPoint.Equals(Vector3.positiveInfinity) && !closestPoint.Equals(lastPosition) && !currentPos.Equals(lastPosition))
             {
-                yield return StartCoroutine(PlanetPoolManager.Instance.MovePlanetToPos(closestPoint));
+                PlanetPoolManager.Instance.MovePlanetToPos(closestPoint);
                 lastPosition = currentPos;
                 currentPos = closestPoint;
             }
@@ -62,8 +63,9 @@ public class PlanetCreator : MonoBehaviour
         foreach (Vector3 vector in PlanetPoolManager.Instance.GetPlanetPositions())
         {
             //(circleRadius / (numberOfPointsInFunction / 4)) is about one point to point length in the line renderer
-            //four time this length should be enought
-            if (Vector3.Distance(nextPoint, vector) < (float)(objectDensity - 4 * (objectDensity / (numberOfPointsInFunction / 4))))
+            //four time this length should be enought (+/-)
+            if (Vector3.Distance(nextPoint, vector) < (float)(objectDensity - 4 * (objectDensity / (numberOfPointsInFunction / 4)))
+                || Vector3.Distance(nextPoint, vector) < (float)(objectDensity + 4 * (objectDensity / (numberOfPointsInFunction / 4))))
             {
                 return false;
             }
