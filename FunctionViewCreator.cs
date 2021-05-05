@@ -14,11 +14,15 @@ public class FunctionViewCreator : MonoBehaviour
     private Camera localCamera;
 
     [SerializeField]
-    [Range(7, 699)]
+    [Range(0, 10000)]
+    private int inputBaseSeed = 0;
+
+    [SerializeField]
+    [Range(7, 1500)]
     private int lineRendererDivisionNum = 0;
 
     [SerializeField]
-    [Range(0, 500)]
+    [Range(0, 1000)]
     private int baseCircleRadius;
 
     //noise variables
@@ -46,6 +50,8 @@ public class FunctionViewCreator : MonoBehaviour
 
     public void Update()
     {
+        GenerateInput();
+
         SetupFieldValues();
 
         ValidateInput();
@@ -55,6 +61,25 @@ public class FunctionViewCreator : MonoBehaviour
         CreateFunctionRepresentation();
 
         gameObject.GetComponent<PlanetCreator>().CreatePlanets();
+    }
+
+    private void GenerateInput()
+    {
+        UnityEngine.Random.InitState(inputBaseSeed);
+
+        noiseSeed = UnityEngine.Random.Range(0f, 5f);
+        Debug.Log("Noise Seed: " + noiseSeed);
+
+        baseCircleRadius = UnityEngine.Random.Range(500, 1000);
+        Debug.Log("Base Circle Radius: " + (baseCircleRadius / 1000f));
+
+        noiseAmplitude = UnityEngine.Random.Range(0.2f, 0.6f) / (baseCircleRadius / 500f);
+        Debug.Log("Noise Amplitude: " + noiseAmplitude);
+
+        noiseRoughness = UnityEngine.Random.Range(0.01f, 0.1f) / (baseCircleRadius / 500f);
+        Debug.Log("Noise Roughness: " + noiseRoughness);
+
+        lineRendererDivisionNum = 1000;
     }
 
     private void SetupFieldValues()
